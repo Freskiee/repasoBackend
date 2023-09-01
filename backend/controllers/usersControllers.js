@@ -50,8 +50,8 @@ const loginUser = asyncHandler(async (req, res) => {
     // desestructuramos los datos del req.body
     const { email, password } = req.body
 
-     // verificamos que nos pasen todos los datos requeridos
-     if ( !email || !password) {
+    // verificamos que nos pasen todos los datos requeridos
+    if (!email || !password) {
         res.status(400)
         throw new Error('Faltan datos, favor de verificar')
     }
@@ -74,12 +74,12 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const getUserData = asyncHandler(async (req, res) => {
-    res.json({ message: 'Data user' })
+    res.json(req.user)
 
 })
 
 const generateToken = (id) => {
-    return jwt.sign({id}, process.env.JWT_SECRET, {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30m'
     })
 }

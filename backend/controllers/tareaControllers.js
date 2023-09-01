@@ -4,7 +4,7 @@ const asyncHandler = require('express-async-handler') // esto es un envoltorio, 
 const Tarea = require('../models/tareasModel.js')
 
 const getTareas = asyncHandler(async (req, res) => {
-    const tareas = await Tarea.find()
+    const tareas = await Tarea.find({ user: req.user._id })
     res.status(200).json(tareas)
 })
 
@@ -16,7 +16,8 @@ const createTareas = asyncHandler(async (req, res) => {
     }
 
     const tarea = await Tarea.create({
-        texto: req.body.texto
+        texto: req.body.texto,
+        user: req.user._id
     })
     res.status(201).json(tarea)
 })
@@ -27,8 +28,13 @@ const updateTareas = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error('La tarea no existe')
     }
-    const tareaUpdated = await Tarea.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    res.status(200).json(tareaUpdated)
+    if (tarea.user.toString() !== req.user._id.toString()) {
+        res.status(401)
+        throw new Error('Acceso no autorizado')
+    } else {
+        const tareaUpdated = await Tarea.findByIdAndUpdate(req.params.id, req.body, { new: true })
+        res.status(200).json(tareaUpdated)
+    }
 })
 
 const deleteTareas = asyncHandler(async (req, res) => {
@@ -37,11 +43,17 @@ const deleteTareas = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error('La tarea no existe')
     }
-    tarea.deleteOne()  // Aquí elimino la tarea directamente, el 'tarea.' es la tarea que se buscó arriba antes del error
+    if (tarea.user.toString() !== req.user._id.toString()) {
+        res.status(401)
+        throw new Error('Acceso no autorizado')
+    } else {
+        tarea.deleteOne()  // Aquí elimino la tarea directamente, el 'tarea.' es la tarea que se buscó arriba antes del error
 
-    // const tareaDeleted = await Tarea.findByIdAndDelete(req.params.id) // Aquí lo que hago es buscar de nuevo la tarea para eliminarla porque la estoy volviendo a buscar con el id, es lo mismo pero en este caso la línea de arriba es más eficiente, pero las 2 funcionan
+        // const tareaDeleted = await Tarea.findByIdAndDelete(req.params.id) // Aquí lo que hago es buscar de nuevo la tarea para eliminarla porque la estoy volviendo a buscar con el id, es lo mismo pero en este caso la línea de arriba es más eficiente, pero las 2 funcionan
 
-    res.status(200).json({ id: req.params.id })
+        res.status(200).json({ id: req.params.id })
+    }
+
 
 })
 
